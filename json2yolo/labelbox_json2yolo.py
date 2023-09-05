@@ -7,7 +7,7 @@ import yaml
 from PIL import Image
 from tqdm import tqdm
 
-from utils import make_dirs
+from .utils import make_dirs
 
 
 def convert(file, zip=True):

@@ -2,11 +2,10 @@ import contextlib
 import json
 
 import cv2
-import pandas as pd
 from PIL import Image
 from collections import defaultdict
 
-from utils import *
+from .utils import *
 
 
 # Convert INFOLKS JSON file into YOLO-format labels ----------------------------
@@ -87,7 +86,7 @@ def convert_vott_json(name, files, img_path):
             cat.extend(a['tags'][0] for a in x['regions'])  # categories
 
     # Write *.names file
-    names = sorted(pd.unique(cat))
+    names = sorted(list(set((cat))))
     with open(name + '.names', 'a') as file:
         [file.write('%s\n' % a) for a in names]
 
@@ -250,8 +249,8 @@ def convert_ath_json(json_dir):  # dir contains json annotations and images
     print(f'Done. Output saved to {Path(dir).absolute()}')
 
 
-def convert_coco_json(json_dir='../coco/annotations/', use_segments=False, cls91to80=False):
-    save_dir = make_dirs()  # output directory
+def convert_coco_json(json_dir='../coco/annotations/', out_dir='yolo_out', use_segments=False, cls91to80=False):
+    save_dir = make_dirs(out_dir)  # output directory
     coco80 = coco91_to_coco80_class()
 
     # Import json
