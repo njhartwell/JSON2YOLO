@@ -1,8 +1,7 @@
-import contextlib
 import json
 from typing import Any
 
-from PIL import Image
+from pathlib import Path
 from collections import defaultdict
 
 import yaml
@@ -54,7 +53,7 @@ def convert_coco_json(
         # Write labels file
         for img_id, anns in tqdm(imgToAnns.items(), desc=f"Annotations {json_file}"):
             img = images["%g" % img_id]
-            h, w, f = img["height"], img["width"], img["file_name"]
+            h, w, f = img["height"], img["width"], Path(img["file_name"])
 
             bboxes = []
             segments = []
@@ -100,7 +99,8 @@ def convert_coco_json(
                         segments.append(s)
 
             # Write
-            with open((annotation_out_dir / f).with_suffix(".txt"), "a") as file:
+            f = Path(f)
+            with open((annotation_out_dir / f.name).with_suffix(".txt"), "a") as file:
                 for i in range(len(bboxes)):
                     line = (
                         *(segments[i] if use_segments else bboxes[i]),
@@ -108,7 +108,7 @@ def convert_coco_json(
                     file.write(("%g " * len(line)).rstrip() % line + "\n")
 
             # Copy image
-            shutil.copyfile(os.path.join(src_image_dir, f), image_out_dir / f)
+            shutil.copyfile(os.path.join(src_image_dir, f), image_out_dir / f.name)
 
     yaml_out: dict[str, Any] = {n: f"images/{n}" for n in split_names}
     yaml_out["names"] = classes
@@ -180,8 +180,6 @@ def merge_multi_segment(segments):
 
 def delete_dsstore(path="../datasets"):
     # Delete apple .DS_store files
-    from pathlib import Path
-
     files = list(Path(path).rglob(".DS_store"))
     print(files)
     for f in files:
