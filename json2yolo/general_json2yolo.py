@@ -20,9 +20,9 @@ def convert_coco_json(
     cls91to80=False,
 ):
     save_dir = make_dirs(out_dir)
-    src_annotations_dir = os.path.join(in_dir, "annotations")
-    src_image_dir = os.path.join(in_dir, "images")
-    coco80 = coco91_to_coco80_class()
+    in_dir= Path(in_dir)
+    src_annotations_dir = in_dir / "annotations"
+    src_image_dir = in_dir /  "images"
 
     # Import annotations
     split_names = []
@@ -49,6 +49,11 @@ def convert_coco_json(
         imgToAnns = defaultdict(list)
         for ann in data["annotations"]:
             imgToAnns[ann["image_id"]].append(ann)
+
+        # Copy images
+        for img in data["images"]:
+            img_path = Path(img['file_name'])
+            shutil.copyfile(src_image_dir / img_path, image_out_dir / img_path.name)
 
         # Write labels file
         for img_id, anns in tqdm(imgToAnns.items(), desc=f"Annotations {json_file}"):
@@ -107,8 +112,6 @@ def convert_coco_json(
                     )  # cls, box or segments
                     file.write(("%g " * len(line)).rstrip() % line + "\n")
 
-            # Copy image
-            shutil.copyfile(os.path.join(src_image_dir, f), image_out_dir / f.name)
 
     yaml_out: dict[str, Any] = {n: f"images/{n}" for n in split_names}
     yaml_out["names"] = classes
